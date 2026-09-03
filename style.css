@@ -194,9 +194,10 @@ h1 {
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
-    background-size: cover;
+    background-size: 100% 100% !important;
     background-position: center;
-    aspect-ratio: 1;
+    width: 100%;
+    height: auto;
 }
 
 .puzzle-piece:hover {
@@ -361,4 +362,14 @@ h1 {
     h1 { font-size: 1.5rem; }
     .controls { padding: 1rem; }
     .puzzle-container { padding: 0.5rem; }
+}
+/* Для вертикальных фото кусочки должны быть прямоугольными */
+.puzzle-board {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.puzzle-piece {
+    aspect-ratio: auto !important;
 }
