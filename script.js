@@ -345,36 +345,48 @@ function renderBoard() {
     
     board.innerHTML = '';
 
-    pieces.forEach((piece, index) => {
-        try {
-            const pieceDiv = document.createElement('div');
-            pieceDiv.className = 'puzzle-piece';
-            pieceDiv.style.backgroundImage = 'url(' + piece.imageData + ')';
-            pieceDiv.style.width = currentPieceWidth + 'px';
-            pieceDiv.style.height = currentPieceHeight + 'px';
-            pieceDiv.dataset.index = index;
-            pieceDiv.style.cursor = 'pointer';
+    // Вычисляем размеры кусочка из imageData
+    const tempImg = new Image();
+    tempImg.onload = () => {
+        const pieceWidth = tempImg.width / cols;
+        const pieceHeight = tempImg.height / rows;
+        
+        showDebug('📐 Размер кусочка: ' + Math.round(pieceWidth) + 'x' + Math.round(pieceHeight));
 
-            if (piece.id === piece.correctId) {
-                pieceDiv.classList.add('correct');
+        pieces.forEach((piece, index) => {
+            try {
+                const pieceDiv = document.createElement('div');
+                pieceDiv.className = 'puzzle-piece';
+                pieceDiv.style.backgroundImage = 'url(' + piece.imageData + ')';
+                pieceDiv.style.width = pieceWidth + 'px';
+                pieceDiv.style.height = pieceHeight + 'px';
+                pieceDiv.style.display = 'inline-block';
+                pieceDiv.dataset.index = index;
+                pieceDiv.style.cursor = 'pointer';
+                pieceDiv.style.border = '1px solid rgba(255,255,255,0.3)';
+
+                if (piece.id === piece.correctId) {
+                    pieceDiv.classList.add('correct');
+                }
+
+                pieceDiv.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const idx = parseInt(this.dataset.index);
+                    showDebug('👆 Клик на кусочек #' + idx);
+                    handlePieceClick(idx);
+                });
+
+                board.appendChild(pieceDiv);
+            } catch (e) {
+                showDebug('❌ renderBoard error: ' + e.message);
             }
+        });
 
-            pieceDiv.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const idx = parseInt(this.dataset.index);
-                showDebug('👆 Клик на кусочек #' + idx);
-                handlePieceClick(idx);
-            });
-
-            board.appendChild(pieceDiv);
-        } catch (e) {
-            showDebug('❌ renderBoard error: ' + e.message);
-        }
-    });
-
-    updateInfo();
-    showDebug('✅ renderBoard finished');
+        updateInfo();
+        showDebug('✅ renderBoard finished');
+    };
+    tempImg.src = imageData;
 }
 
 // ============================================
