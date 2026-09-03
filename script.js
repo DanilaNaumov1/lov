@@ -26,13 +26,7 @@ let currentPieceHeight = 0;
 // ============================================
 // ВИДИМАЯ ОТЛАДКА
 // ============================================
-function showDebug(msg) {
-    console.log(msg);
-    const debugDiv = document.getElementById('debugLog');
-    if (debugDiv) {
-        debugDiv.innerHTML += msg + '<br>';
-    }
-}
+
 
 // ============================================
 // ИНИЦИАЛИЗАЦИЯ
@@ -40,13 +34,7 @@ function showDebug(msg) {
 document.addEventListener('DOMContentLoaded', () => {
     showDebug('✅ DOM загружен');
     
-    // Создаём блок отладки
-    const debugDiv = document.createElement('div');
-    debugDiv.id = 'debugLog';
-    debugDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;padding:10px;font-family:monospace;font-size:12px;z-index:9999;max-height:200px;overflow-y:auto;';
-    document.body.appendChild(debugDiv);
-    
-    showDebug('✅ Блок отладки создан');
+
     
     // Проверяем config.js
     if (typeof window.MY_PHOTO_BASE64 === 'undefined') {
