@@ -426,14 +426,18 @@ function handlePieceClick(index) {
         showDebug('📊 piece1.id=' + piece1.id + ', piece2.id=' + piece2.id);
         
         // Не даём менять два правильных кусочка
-        if (piece1.id === piece1.correctId && piece2.id === piece2.correctId) {
-            showDebug('⚠️ Оба на месте, отмена');
-            if (pieceElements[selectedPiece]) {
-                pieceElements[selectedPiece].classList.remove('selected');
-            }
-            selectedPiece = null;
-            return;
-        }
+        // Проверяем, находятся ли кусочки на своих правильных местах
+const piece1IsCorrect = (selectedPiece === piece1.id);
+const piece2IsCorrect = (index === piece2.id);
+
+if (piece1IsCorrect && piece2IsCorrect) {
+    showDebug('⚠️ Оба на месте, отмена');
+    if (pieceElements[selectedPiece]) {
+        pieceElements[selectedPiece].classList.remove('selected');
+    }
+    selectedPiece = null;
+    return;
+}
 
         // МЕНЯЕМ МЕСТАМИ
         showDebug('💫 ОБМЕН...');
