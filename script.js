@@ -462,8 +462,8 @@ if (piece1IsCorrect && piece2IsCorrect) {
         const correctCount = pieces.filter((p, i) => p.id === i).length;
         showDebug('📊 Правильных: ' + correctCount + '/' + totalPieces);
 
-        if (moves >= MIN_MOVES_TO_WIN && correctCount === totalPieces) {
-        showDebug(' ПОБЕДА!');
+        if (correctCount === totalPieces) {
+        showDebug('🎉 ПОБЕДА! Все ' + totalPieces + ' кусочков на месте!');
         setTimeout(showWin, 800);
         }
     }
