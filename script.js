@@ -326,7 +326,7 @@ function shuffleArray(array) {
 }
 
 function renderBoard() {
-    showDebug('🎨 renderBoard start, pieces: ' + pieces.length);
+    showDebug(' renderBoard start, pieces: ' + pieces.length);
     
     const board = document.getElementById('puzzleBoard');
     if (!board) {
@@ -342,12 +342,21 @@ function renderBoard() {
             pieceDiv.className = 'puzzle-piece';
             pieceDiv.style.backgroundImage = 'url(' + piece.imageData + ')';
             pieceDiv.dataset.index = index;
+            pieceDiv.style.cursor = 'pointer';
 
             if (piece.id === piece.correctId) {
                 pieceDiv.classList.add('correct');
             }
 
-            pieceDiv.addEventListener('click', () => handlePieceClick(index));
+            // Надёжный обработчик клика
+            pieceDiv.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const idx = parseInt(this.dataset.index);
+                showDebug(' Клик на кусочек #' + idx);
+                handlePieceClick(idx);
+            });
+
             board.appendChild(pieceDiv);
         } catch (e) {
             showDebug('❌ renderBoard error: ' + e.message);
