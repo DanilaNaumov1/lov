@@ -20,6 +20,8 @@ let rows = 0;
 let pieceSize = 0;
 let currentMode = null;
 let gameStarted = false;
+let currentPieceWidth = 0;
+let currentPieceHeight = 0;
 
 // ============================================
 // ВИДИМАЯ ОТЛАДКА
@@ -47,11 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
     showDebug('✅ Блок отладки создан');
     
     // Проверяем config.js
-    if (typeof MY_PHOTO_BASE64 === 'undefined') {
-        showDebug('❌ MY_PHOTO_BASE64 НЕ ОПРЕДЕЛЁН!');
+    if (typeof window.MY_PHOTO_BASE64 === 'undefined') {
+        showDebug('⚠️ MY_PHOTO_BASE64 не определён');
         window.MY_PHOTO_BASE64 = '';
     } else {
-        showDebug('✅ MY_PHOTO_BASE64 определён, длина: ' + MY_PHOTO_BASE64.length);
+        showDebug('✅ MY_PHOTO_BASE64 определён, длина: ' + window.MY_PHOTO_BASE64.length);
     }
     
     // Привязываем обработчик
@@ -60,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         imageInput.addEventListener('change', handleImageUpload);
         showDebug('✅ Обработчик файла привязан');
     } else {
-        showDebug('❌ #imageInput не найден!');
+        showDebug(' #imageInput не найден!');
     }
 });
 
@@ -68,7 +70,7 @@ function handleImageUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
     
-    showDebug('📷 Файл: ' + file.name);
+    showDebug(' Файл: ' + file.name);
     
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -83,7 +85,7 @@ function handleImageUpload(e) {
 // ВЫБОР РЕЖИМА
 // ============================================
 function selectMode(mode) {
-    showDebug(' selectMode: ' + mode);
+    showDebug('🎮 selectMode: ' + mode);
     currentMode = mode;
     
     document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
@@ -99,12 +101,12 @@ function selectMode(mode) {
     gameStarted = false;
 
     if (mode === 'my') {
-        showDebug(' Режим: Наше фото');
+        showDebug('📸 Режим: Наше фото');
         const buttons = document.querySelectorAll('.mode-btn');
         if (buttons[0]) buttons[0].classList.add('active');
         
         if (!window.MY_PHOTO_BASE64 || window.MY_PHOTO_BASE64 === '') {
-            showDebug('❌ MY_PHOTO_BASE64 пустой!');
+            showDebug(' MY_PHOTO_BASE64 пустой!');
             alert('⚠️ Фото не добавлено!\n\n1. Открой config.js\n2. Вставь base64 в MY_PHOTO_BASE64\n3. Обнови страницу');
             return;
         }
@@ -142,7 +144,7 @@ function processImage(src) {
             const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
             width = Math.floor(width * ratio);
             height = Math.floor(height * ratio);
-            showDebug('📐 Уменьшено: ' + width + 'x' + height);
+            showDebug(' Уменьшено: ' + width + 'x' + height);
         }
 
         const canvas = document.createElement('canvas');
@@ -240,7 +242,7 @@ function startGame() {
 // СОЗДАНИЕ ПАЗЛА
 // ============================================
 function createPuzzle() {
-    showDebug('🧩 createPuzzle start');
+    showDebug(' createPuzzle start');
     
     const board = document.getElementById('puzzleBoard');
     if (!board) {
@@ -262,6 +264,10 @@ function createPuzzle() {
         
         const pieceWidth = img.width / cols;
         const pieceHeight = img.height / rows;
+        
+        currentPieceWidth = pieceWidth;
+        currentPieceHeight = pieceHeight;
+        
         showDebug('📐 Кусочек: ' + Math.round(pieceWidth) + 'x' + Math.round(pieceHeight));
 
         for (let row = 0; row < rows; row++) {
@@ -325,8 +331,11 @@ function shuffleArray(array) {
     }
 }
 
+// ============================================
+// ОТРИСОВКА ДОСКИ
+// ============================================
 function renderBoard() {
-    showDebug(' renderBoard start, pieces: ' + pieces.length);
+    showDebug('🎨 renderBoard start, pieces: ' + pieces.length);
     
     const board = document.getElementById('puzzleBoard');
     if (!board) {
@@ -341,6 +350,8 @@ function renderBoard() {
             const pieceDiv = document.createElement('div');
             pieceDiv.className = 'puzzle-piece';
             pieceDiv.style.backgroundImage = 'url(' + piece.imageData + ')';
+            pieceDiv.style.width = currentPieceWidth + 'px';
+            pieceDiv.style.height = currentPieceHeight + 'px';
             pieceDiv.dataset.index = index;
             pieceDiv.style.cursor = 'pointer';
 
@@ -348,12 +359,11 @@ function renderBoard() {
                 pieceDiv.classList.add('correct');
             }
 
-            // Надёжный обработчик клика
             pieceDiv.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 const idx = parseInt(this.dataset.index);
-                showDebug(' Клик на кусочек #' + idx);
+                showDebug('👆 Клик на кусочек #' + idx);
                 handlePieceClick(idx);
             });
 
@@ -367,41 +377,81 @@ function renderBoard() {
     showDebug('✅ renderBoard finished');
 }
 
+// ============================================
+// ОБРАБОТКА КЛИКА
+// ============================================
 function handlePieceClick(index) {
-    if (!gameStarted) return;
+    showDebug('🎯 handlePieceClick вызвана, index: ' + index);
+    
+    if (!gameStarted) {
+        showDebug('⚠️ Игра не начата');
+        return;
+    }
 
     const pieceElements = document.querySelectorAll('.puzzle-piece');
+    showDebug('📋 pieceElements.length: ' + pieceElements.length);
+    showDebug('📋 selectedPiece: ' + selectedPiece);
 
     if (selectedPiece === null) {
+        showDebug('✅ Первый клик, выбираем #' + index);
         selectedPiece = index;
-        if (pieceElements[index]) pieceElements[index].classList.add('selected');
+        if (pieceElements[index]) {
+            pieceElements[index].classList.add('selected');
+            showDebug('✅ Добавлен класс selected');
+        }
     } else if (selectedPiece === index) {
-        if (pieceElements[index]) pieceElements[index].classList.remove('selected');
+        showDebug('️ Отмена выбора #' + index);
+        if (pieceElements[index]) {
+            pieceElements[index].classList.remove('selected');
+        }
         selectedPiece = null;
     } else {
+        showDebug('🔄 Второй клик! Меняем #' + selectedPiece + ' <-> #' + index);
+        
         const piece1 = pieces[selectedPiece];
         const piece2 = pieces[index];
         
+        showDebug('📊 piece1.id=' + piece1.id + ', piece2.id=' + piece2.id);
+        
+        // Не даём менять два правильных кусочка
         if (piece1.id === piece1.correctId && piece2.id === piece2.correctId) {
-            if (pieceElements[selectedPiece]) pieceElements[selectedPiece].classList.remove('selected');
+            showDebug('⚠️ Оба на месте, отмена');
+            if (pieceElements[selectedPiece]) {
+                pieceElements[selectedPiece].classList.remove('selected');
+            }
             selectedPiece = null;
             return;
         }
 
+        // МЕНЯЕМ МЕСТАМИ
+        showDebug('💫 ОБМЕН...');
         const temp = pieces[selectedPiece];
         pieces[selectedPiece] = pieces[index];
         pieces[index] = temp;
         
         moves++;
+        showDebug('📈 Ходов: ' + moves);
+        
+        // Снимаем выделение
+        if (pieceElements[selectedPiece]) {
+            pieceElements[selectedPiece].classList.remove('selected');
+        }
         selectedPiece = null;
+        
+        showDebug('🔄 Перерисовка...');
         renderBoard();
         
+        // Проверяем победу
         if (moves >= MIN_MOVES_TO_WIN && isSolved()) {
+            showDebug('🎉 ПОБЕДА!');
             setTimeout(showWin, 800);
         }
     }
 }
 
+// ============================================
+// ОБНОВЛЕНИЕ ИНФОРМАЦИИ
+// ============================================
 function updateInfo() {
     const movesCountEl = document.getElementById('movesCount');
     const correctCountEl = document.getElementById('correctCount');
@@ -413,7 +463,11 @@ function updateInfo() {
     if (correctCountEl) correctCountEl.textContent = correctPieces;
 }
 
+// ============================================
+// ПЕРЕМЕШАТЬ ЗАНОВО
+// ============================================
 function shufflePieces() {
+    showDebug(' Перемешивание...');
     let attempts = 0;
     do {
         shuffleArray(pieces);
@@ -423,6 +477,9 @@ function shufflePieces() {
     renderBoard();
 }
 
+// ============================================
+// ПОДСКАЗКА
+// ============================================
 function showPreview() {
     const previewModal = document.getElementById('previewModal');
     const previewFull = document.getElementById('previewFull');
@@ -435,7 +492,12 @@ function closePreview() {
     if (previewModal) previewModal.classList.remove('active');
 }
 
+// ============================================
+// ПОБЕДА
+// ============================================
 function showWin() {
+    showDebug('🏆 showWin вызвана');
+    
     const winModal = document.getElementById('winModal');
     const winImage = document.getElementById('winImage');
     const finalMoves = document.getElementById('finalMoves');
@@ -447,6 +509,9 @@ function showWin() {
     createHearts();
 }
 
+// ============================================
+// СЕРДЕЧКИ
+// ============================================
 function createHearts() {
     const container = document.getElementById('heartsContainer');
     if (!container) return;
@@ -466,6 +531,9 @@ function createHearts() {
     }
 }
 
+// ============================================
+// ОБРАБОТКА ОШИБОК
+// ============================================
 window.addEventListener('error', (e) => {
-    showDebug('🔥 ОШИБКА: ' + e.message);
+    showDebug('🔥 Глобальная ошибка: ' + e.message);
 });
