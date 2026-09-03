@@ -1,0 +1,364 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    overflow-x: hidden;
+}
+
+.header {
+    text-align: center;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.controls {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1.5rem;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.mode-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.mode-btn {
+    padding: 1.5rem;
+    border: 3px solid #667eea;
+    background: white;
+    color: #667eea;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.mode-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.mode-btn.active {
+    background: #667eea;
+    color: white;
+}
+
+.mode-btn .emoji {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.control-group {
+    margin-bottom: 1rem;
+    display: none;
+}
+
+.control-group.active {
+    display: block;
+}
+
+.control-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.control-group input[type="file"] {
+    width: 100%;
+    padding: 0.5rem;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+
+.piece-info {
+    background: #f0f0ff;
+    padding: 1rem;
+    border-radius: 10px;
+    margin: 1rem 0;
+    text-align: center;
+    color: #764ba2;
+    font-weight: 600;
+    display: none;
+    line-height: 1.6;
+}
+
+.start-btn {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: none;
+}
+
+.start-btn.active {
+    display: block;
+}
+
+.start-btn:hover {
+    transform: translateY(-2px);
+}
+
+.game-info {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem;
+    border-radius: 15px;
+    margin-bottom: 1rem;
+    display: none;
+    justify-content: space-around;
+    max-width: 600px;
+    width: 100%;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.game-info.active {
+    display: flex;
+}
+
+.info-item {
+    text-align: center;
+}
+
+.info-label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.info-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #764ba2;
+}
+
+.puzzle-container {
+    position: relative;
+    max-width: 600px;
+    width: 100%;
+    background: white;
+    border-radius: 20px;
+    padding: 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: none;
+}
+
+.puzzle-container.active {
+    display: block;
+}
+
+.puzzle-board {
+    display: grid;
+    gap: 2px;
+    background: #ddd;
+    padding: 2px;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.puzzle-piece {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    aspect-ratio: 1;
+}
+
+.puzzle-piece:hover {
+    transform: scale(1.05);
+    z-index: 10;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.puzzle-piece.selected {
+    box-shadow: 0 0 0 4px #667eea, 0 5px 15px rgba(0,0,0,0.3);
+    z-index: 20;
+    transform: scale(1.1);
+}
+
+.puzzle-piece.correct {
+    box-shadow: inset 0 0 0 2px #28a745;
+}
+
+.game-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.8rem;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.action-btn:hover {
+    background: #5a6268;
+}
+
+.preview-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.preview-modal.active {
+    display: flex;
+}
+
+.preview-modal img {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 15px;
+}
+
+.preview-modal .close-preview {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.win-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.win-modal.active {
+    display: flex;
+}
+
+.win-content {
+    background: white;
+    border-radius: 30px;
+    padding: 3rem;
+    text-align: center;
+    max-width: 500px;
+    animation: winAnimation 1s;
+}
+
+@keyframes winAnimation {
+    0% { transform: scale(0) rotate(-180deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+
+.win-content h2 {
+    color: #764ba2;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.win-content p {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.win-image {
+    max-width: 100%;
+    border-radius: 15px;
+    margin: 1rem 0;
+}
+
+.restart-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.hearts-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+}
+
+.floating-heart {
+    position: absolute;
+    font-size: 2rem;
+    animation: floatUp 3s ease-out forwards;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(0); opacity: 1; }
+    100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+}
+
+@media (max-width: 768px) {
+    h1 { font-size: 1.5rem; }
+    .controls { padding: 1rem; }
+    .puzzle-container { padding: 0.5rem; }
+}
