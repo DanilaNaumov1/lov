@@ -319,9 +319,10 @@ function createPuzzle() {
 }
 
 function isSolved() {
-    return pieces.every((p, i) => p.id === p.correctId);
+    const correctCount = pieces.filter((p, i) => p.id === i).length;
+    showDebug('✅ Правильных: ' + correctCount + ' из ' + totalPieces);
+    return correctCount === totalPieces;
 }
-
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -456,11 +457,14 @@ if (piece1IsCorrect && piece2IsCorrect) {
         
         showDebug('🔄 Перерисовка...');
         renderBoard();
-        
-        // Проверяем победу
-        if (moves >= MIN_MOVES_TO_WIN && isSolved()) {
-            showDebug('🎉 ПОБЕДА!');
-            setTimeout(showWin, 800);
+
+        // Проверяем победу - считаем правильные позиции
+        const correctCount = pieces.filter((p, i) => p.id === i).length;
+        showDebug('📊 Правильных: ' + correctCount + '/' + totalPieces);
+
+        if (moves >= MIN_MOVES_TO_WIN && correctCount === totalPieces) {
+        showDebug(' ПОБЕДА!');
+        setTimeout(showWin, 800);
         }
     }
 }
@@ -474,11 +478,11 @@ function updateInfo() {
     
     if (movesCountEl) movesCountEl.textContent = moves;
     
-    correctPieces = pieces.filter(p => p.id === p.correctId).length;
+    // Правильная проверка: позиция в массиве === id кусочка
+    correctPieces = pieces.filter((p, i) => p.id === i).length;
     
     if (correctCountEl) correctCountEl.textContent = correctPieces;
 }
-
 // ============================================
 // ПЕРЕМЕШАТЬ ЗАНОВО
 // ============================================
