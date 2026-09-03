@@ -22,50 +22,60 @@ let currentMode = null;
 let gameStarted = false;
 
 // ============================================
-// ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ
+// ВИДИМАЯ ОТЛАДКА
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('✅ DOM загружен, начинаю инициализацию...');
-    
-    // Проверяем, существует ли MY_PHOTO_BASE64
-    if (typeof MY_PHOTO_BASE64 === 'undefined') {
-        console.warn('⚠️ MY_PHOTO_BASE64 не определён в config.js');
-        window.MY_PHOTO_BASE64 = '';
-    }
-    
-    initEventListeners();
-    console.log('✅ Инициализация завершена');
-});
-
-function initEventListeners() {
-    // Обработчик загрузки файла
-    const imageInput = document.getElementById('imageInput');
-    if (imageInput) {
-        imageInput.addEventListener('change', handleImageUpload);
+function showDebug(msg) {
+    console.log(msg);
+    const debugDiv = document.getElementById('debugLog');
+    if (debugDiv) {
+        debugDiv.innerHTML += msg + '<br>';
     }
 }
 
-function handleImageUpload(e) {
-    const file = e.target.files[0];
-    if (!file) {
-        console.error('❌ Файл не выбран');
-        return;
+// ============================================
+// ИНИЦИАЛИЗАЦИЯ
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    showDebug('✅ DOM загружен');
+    
+    // Создаём блок отладки
+    const debugDiv = document.createElement('div');
+    debugDiv.id = 'debugLog';
+    debugDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#000;color:#0f0;padding:10px;font-family:monospace;font-size:12px;z-index:9999;max-height:200px;overflow-y:auto;';
+    document.body.appendChild(debugDiv);
+    
+    showDebug('✅ Блок отладки создан');
+    
+    // Проверяем config.js
+    if (typeof MY_PHOTO_BASE64 === 'undefined') {
+        showDebug('❌ MY_PHOTO_BASE64 НЕ ОПРЕДЕЛЁН!');
+        window.MY_PHOTO_BASE64 = '';
+    } else {
+        showDebug('✅ MY_PHOTO_BASE64 определён, длина: ' + MY_PHOTO_BASE64.length);
     }
     
-    console.log('📷 Файл выбран:', file.name, file.type);
+    // Привязываем обработчик
+    const imageInput = document.getElementById('imageInput');
+    if (imageInput) {
+        imageInput.addEventListener('change', handleImageUpload);
+        showDebug('✅ Обработчик файла привязан');
+    } else {
+        showDebug('❌ #imageInput не найден!');
+    }
+});
+
+function handleImageUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    showDebug('📷 Файл: ' + file.name);
     
     const reader = new FileReader();
-    
     reader.onload = (event) => {
-        console.log('✅ FileReader завершил чтение');
+        showDebug('✅ FileReader OK');
         processImage(event.target.result);
     };
-    
-    reader.onerror = () => {
-        console.error(' Ошибка FileReader');
-        alert('Ошибка чтения файла!');
-    };
-    
+    reader.onerror = () => showDebug('❌ FileReader error');
     reader.readAsDataURL(file);
 }
 
@@ -73,11 +83,9 @@ function handleImageUpload(e) {
 // ВЫБОР РЕЖИМА
 // ============================================
 function selectMode(mode) {
-    console.log('🎮 selectMode вызвана, режим:', mode);
-    
+    showDebug(' selectMode: ' + mode);
     currentMode = mode;
     
-    // Сброс UI
     document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
     const anyPhotoGroup = document.getElementById('anyPhotoGroup');
     const pieceInfo = document.getElementById('pieceInfo');
@@ -91,23 +99,22 @@ function selectMode(mode) {
     gameStarted = false;
 
     if (mode === 'my') {
-        console.log('📸 Режим: Наше фото');
+        showDebug(' Режим: Наше фото');
         const buttons = document.querySelectorAll('.mode-btn');
         if (buttons[0]) buttons[0].classList.add('active');
         
         if (!window.MY_PHOTO_BASE64 || window.MY_PHOTO_BASE64 === '') {
-            console.error(' MY_PHOTO_BASE64 пустой!');
-            alert('⚠️ Фото ещё не добавлено!\n\n1. Открой файл config.js\n2. Вставь base64 код фото в переменную MY_PHOTO_BASE64\n3. Сохрани и обнови страницу');
+            showDebug('❌ MY_PHOTO_BASE64 пустой!');
+            alert('⚠️ Фото не добавлено!\n\n1. Открой config.js\n2. Вставь base64 в MY_PHOTO_BASE64\n3. Обнови страницу');
             return;
         }
         
-        console.log('✅ MY_PHOTO_BASE64 найден, длина:', window.MY_PHOTO_BASE64.length);
+        showDebug('✅ MY_PHOTO_BASE64 длина: ' + window.MY_PHOTO_BASE64.length);
         processImage(window.MY_PHOTO_BASE64);
     } else {
-        console.log(' Режим: Любое фото');
+        showDebug('📷 Режим: Любое фото');
         const buttons = document.querySelectorAll('.mode-btn');
         if (buttons[1]) buttons[1].classList.add('active');
-        
         if (anyPhotoGroup) anyPhotoGroup.classList.add('active');
     }
 }
@@ -116,47 +123,43 @@ function selectMode(mode) {
 // ОБРАБОТКА ИЗОБРАЖЕНИЯ
 // ============================================
 function processImage(src) {
-    console.log('🔄 processImage началась');
+    showDebug('🔄 processImage start');
     
     if (!src) {
-        console.error('❌ src пустой!');
-        alert('Ошибка: изображение не загружено');
+        showDebug('❌ src пустой');
         return;
     }
     
     const img = new Image();
     
     img.onload = () => {
-        console.log('✅ Изображение загружено:', img.width, 'x', img.height);
+        showDebug('✅ img.onload: ' + img.width + 'x' + img.height);
         
         let width = img.width;
         let height = img.height;
         
-        // Уменьшаем если нужно
         if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
             const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
             width = Math.floor(width * ratio);
             height = Math.floor(height * ratio);
-            console.log(' Уменьшено до:', width, 'x', height);
+            showDebug('📐 Уменьшено: ' + width + 'x' + height);
         }
 
-        // Создаём canvas
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         
         if (!ctx) {
-            console.error('❌ Не удалось получить контекст canvas');
+            showDebug('❌ ctx null');
             return;
         }
         
         ctx.drawImage(img, 0, 0, width, height);
         imageData = canvas.toDataURL();
         
-        console.log('✅ imageData создана, длина:', imageData.length);
+        showDebug('✅ imageData длина: ' + imageData.length);
 
-        // Вычисляем сетку
         const totalArea = width * height;
         const areaPerPiece = totalArea / MAX_PIECES;
         pieceSize = Math.max(MIN_PIECE_SIZE, Math.round(Math.sqrt(areaPerPiece)));
@@ -169,9 +172,8 @@ function processImage(src) {
         
         totalPieces = cols * rows;
 
-        console.log(`🧩 Сетка: ${cols}x${rows} = ${totalPieces} кусочков`);
+        showDebug('🧩 Сетка: ' + cols + 'x' + rows + ' = ' + totalPieces);
 
-        // Обновляем UI
         const photoSizeEl = document.getElementById('photoSize');
         const pieceCountEl = document.getElementById('pieceCount');
         const gridSizeEl = document.getElementById('gridSize');
@@ -179,19 +181,19 @@ function processImage(src) {
         const pieceInfoEl = document.getElementById('pieceInfo');
         const startBtn = document.getElementById('startBtn');
         
-        if (photoSizeEl) photoSizeEl.textContent = `${width}×${height}`;
+        if (photoSizeEl) photoSizeEl.textContent = width + '×' + height;
         if (pieceCountEl) pieceCountEl.textContent = totalPieces;
-        if (gridSizeEl) gridSizeEl.textContent = `${cols}×${rows}`;
+        if (gridSizeEl) gridSizeEl.textContent = cols + '×' + rows;
         if (pieceSizeDisplayEl) pieceSizeDisplayEl.textContent = pieceSize;
         if (pieceInfoEl) pieceInfoEl.style.display = 'block';
         if (startBtn) startBtn.classList.add('active');
         
-        console.log('✅ processImage завершена, кнопка "Начать игру" активна');
+        showDebug('✅ Готово к игре!');
     };
     
     img.onerror = () => {
-        console.error('❌ Ошибка загрузки изображения');
-        alert('Ошибка загрузки изображения! Проверь, что base64 код правильный.');
+        showDebug('❌ img.onerror');
+        alert('Ошибка загрузки изображения!');
     };
     
     img.src = src;
@@ -201,29 +203,26 @@ function processImage(src) {
 // НАЧАЛО ИГРЫ
 // ============================================
 function startGame() {
-    console.log('🎮 startGame вызвана');
-    console.log('imageData:', imageData ? 'существует (' + imageData.length + ' символов)' : 'НЕТ');
+    showDebug('🎮 startGame');
+    showDebug('imageData: ' + (imageData ? 'OK (' + imageData.length + ')' : 'НЕТ'));
     
     if (!imageData) {
-        console.error('❌ imageData отсутствует!');
+        showDebug('❌ imageData отсутствует');
         alert('⚠️ Сначала выбери фото!');
         return;
     }
 
     gameStarted = true;
     
-    // Скрываем панель управления
     const controlsPanel = document.getElementById('controlsPanel');
     if (controlsPanel) controlsPanel.style.display = 'none';
     
-    // Показываем игровую информацию
     const gameInfo = document.getElementById('gameInfo');
     if (gameInfo) {
         gameInfo.style.display = 'flex';
         gameInfo.classList.add('active');
     }
     
-    // Показываем контейнер пазла
     const puzzleContainer = document.getElementById('puzzleContainer');
     if (puzzleContainer) {
         puzzleContainer.style.display = 'block';
@@ -233,7 +232,7 @@ function startGame() {
     const totalCountEl = document.getElementById('totalCount');
     if (totalCountEl) totalCountEl.textContent = totalPieces;
 
-    console.log('🔄 Создаю пазл...');
+    showDebug('🔄 createPuzzle...');
     createPuzzle();
 }
 
@@ -241,16 +240,15 @@ function startGame() {
 // СОЗДАНИЕ ПАЗЛА
 // ============================================
 function createPuzzle() {
-    console.log('🧩 createPuzzle началась');
+    showDebug('🧩 createPuzzle start');
     
     const board = document.getElementById('puzzleBoard');
     if (!board) {
-        console.error('❌ Элемент #puzzleBoard не найден!');
-        alert('Ошибка: не найден элемент доски');
+        showDebug('❌ #puzzleBoard не найден!');
         return;
     }
     
-    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    board.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
     board.innerHTML = '';
     pieces = [];
     selectedPiece = null;
@@ -260,13 +258,12 @@ function createPuzzle() {
     const img = new Image();
     
     img.onload = () => {
-        console.log('✅ Изображение для пазла загружено');
+        showDebug('✅ img.onload для пазла');
         
         const pieceWidth = img.width / cols;
         const pieceHeight = img.height / rows;
-        console.log(`📐 Размер кусочка: ${Math.round(pieceWidth)}x${Math.round(pieceHeight)}px`);
+        showDebug('📐 Кусочек: ' + Math.round(pieceWidth) + 'x' + Math.round(pieceHeight));
 
-        // Создаём кусочки
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
                 try {
@@ -289,57 +286,51 @@ function createPuzzle() {
                         imageData: canvas.toDataURL()
                     });
                 } catch (e) {
-                    console.error('❌ Ошибка создания кусочка:', e);
+                    showDebug('❌ Ошибка кусочка: ' + e.message);
                 }
             }
         }
 
-        console.log(`✅ Создано ${pieces.length} кусочков`);
+        showDebug('✅ Создано ' + pieces.length + ' кусочков');
 
-        // Перемешиваем
         let attempts = 0;
         do {
             shuffleArray(pieces);
             attempts++;
         } while (isSolved() && attempts < 100);
 
-        console.log('🔄 Рендерю доску...');
+        showDebug('🔄 renderBoard...');
         renderBoard();
-        console.log('✅ Доска готова!');
+        showDebug('✅ ДОСКА ГОТОВА!');
     };
     
     img.onerror = () => {
-        console.error('❌ Ошибка загрузки изображения для пазла');
+        showDebug('❌ img.onerror для пазла');
         alert('Ошибка создания пазла!');
     };
     
     img.src = imageData;
 }
 
-// ============================================
-// ПРОВЕРКА РЕШЕНИЯ
-// ============================================
 function isSolved() {
     return pieces.every((p, i) => p.id === p.correctId);
 }
 
-// ============================================
-// ПЕРЕМЕШИВАНИЕ
-// ============================================
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        const temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
     }
 }
 
-// ============================================
-// ОТРИСОВКА ДОСКИ
-// ============================================
 function renderBoard() {
+    showDebug('🎨 renderBoard start, pieces: ' + pieces.length);
+    
     const board = document.getElementById('puzzleBoard');
     if (!board) {
-        console.error('❌ #puzzleBoard не найден в renderBoard');
+        showDebug('❌ #puzzleBoard не найден');
         return;
     }
     
@@ -349,7 +340,7 @@ function renderBoard() {
         try {
             const pieceDiv = document.createElement('div');
             pieceDiv.className = 'puzzle-piece';
-            pieceDiv.style.backgroundImage = `url(${piece.imageData})`;
+            pieceDiv.style.backgroundImage = 'url(' + piece.imageData + ')';
             pieceDiv.dataset.index = index;
 
             if (piece.id === piece.correctId) {
@@ -359,64 +350,49 @@ function renderBoard() {
             pieceDiv.addEventListener('click', () => handlePieceClick(index));
             board.appendChild(pieceDiv);
         } catch (e) {
-            console.error('❌ Ошибка создания элемента пазла:', e);
+            showDebug('❌ renderBoard error: ' + e.message);
         }
     });
 
     updateInfo();
+    showDebug('✅ renderBoard finished');
 }
 
-// ============================================
-// ОБРАБОТКА КЛИКА
-// ============================================
 function handlePieceClick(index) {
-    if (!gameStarted) {
-        console.warn('⚠️ Игра не начата');
-        return;
-    }
+    if (!gameStarted) return;
 
     const pieceElements = document.querySelectorAll('.puzzle-piece');
 
     if (selectedPiece === null) {
         selectedPiece = index;
-        if (pieceElements[index]) {
-            pieceElements[index].classList.add('selected');
-        }
+        if (pieceElements[index]) pieceElements[index].classList.add('selected');
     } else if (selectedPiece === index) {
-        if (pieceElements[index]) {
-            pieceElements[index].classList.remove('selected');
-        }
+        if (pieceElements[index]) pieceElements[index].classList.remove('selected');
         selectedPiece = null;
     } else {
         const piece1 = pieces[selectedPiece];
         const piece2 = pieces[index];
         
-        // Не даём менять два правильных кусочка
         if (piece1.id === piece1.correctId && piece2.id === piece2.correctId) {
-            if (pieceElements[selectedPiece]) {
-                pieceElements[selectedPiece].classList.remove('selected');
-            }
+            if (pieceElements[selectedPiece]) pieceElements[selectedPiece].classList.remove('selected');
             selectedPiece = null;
             return;
         }
 
-        // Меняем местами
-        [pieces[selectedPiece], pieces[index]] = [pieces[index], pieces[selectedPiece]];
+        const temp = pieces[selectedPiece];
+        pieces[selectedPiece] = pieces[index];
+        pieces[index] = temp;
+        
         moves++;
         selectedPiece = null;
         renderBoard();
         
-        // Проверяем победу
         if (moves >= MIN_MOVES_TO_WIN && isSolved()) {
-            console.log('🎉 Победа! Ходов:', moves);
             setTimeout(showWin, 800);
         }
     }
 }
 
-// ============================================
-// ОБНОВЛЕНИЕ ИНФОРМАЦИИ
-// ============================================
 function updateInfo() {
     const movesCountEl = document.getElementById('movesCount');
     const correctCountEl = document.getElementById('correctCount');
@@ -428,28 +404,19 @@ function updateInfo() {
     if (correctCountEl) correctCountEl.textContent = correctPieces;
 }
 
-// ============================================
-// ПЕРЕМЕШАТЬ ЗАНОВО
-// ============================================
 function shufflePieces() {
-    console.log('🔀 Перемешивание...');
     let attempts = 0;
     do {
         shuffleArray(pieces);
         attempts++;
     } while (isSolved() && attempts < 100);
-    
     moves = 0;
     renderBoard();
 }
 
-// ============================================
-// ПОДСКАЗКА
-// ============================================
 function showPreview() {
     const previewModal = document.getElementById('previewModal');
     const previewFull = document.getElementById('previewFull');
-    
     if (previewFull) previewFull.src = imageData;
     if (previewModal) previewModal.classList.add('active');
 }
@@ -459,12 +426,7 @@ function closePreview() {
     if (previewModal) previewModal.classList.remove('active');
 }
 
-// ============================================
-// ПОБЕДА
-// ============================================
 function showWin() {
-    console.log(' showWin вызвана');
-    
     const winModal = document.getElementById('winModal');
     const winImage = document.getElementById('winImage');
     const finalMoves = document.getElementById('finalMoves');
@@ -476,9 +438,6 @@ function showWin() {
     createHearts();
 }
 
-// ============================================
-// СЕРДЕЧКИ
-// ============================================
 function createHearts() {
     const container = document.getElementById('heartsContainer');
     if (!container) return;
@@ -498,9 +457,6 @@ function createHearts() {
     }
 }
 
-// ============================================
-// ОБРАБОТКА ОШИБОК
-// ============================================
 window.addEventListener('error', (e) => {
-    console.error('🔥 Глобальная ошибка:', e.error);
+    showDebug('🔥 ОШИБКА: ' + e.message);
 });
